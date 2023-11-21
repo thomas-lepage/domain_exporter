@@ -2,13 +2,12 @@ package client
 
 import (
 	"context"
-	"time"
 )
 
 type multiClient []Client
 
-func (clients multiClient) ExpireTime(ctx context.Context, domain string, host string) (time.Time, error) {
-	var t time.Time
+func (clients multiClient) ExpireTime(ctx context.Context, domain string, host string) (Metrics, error) {
+	var t Metrics
 	var err error
 	for _, client := range clients {
 		t, err = client.ExpireTime(ctx, domain, host)

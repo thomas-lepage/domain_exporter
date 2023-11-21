@@ -32,7 +32,7 @@ It works more or less like Prometheus's
 [blackbox_exporter](https://github.com/prometheus/blackbox_exporter).
 
 Alerting rules examples can be found on the
-[_examples](https://github.com/caarlos0/domain_exporter/tree/main/_examples)
+[_examples](https://github.com/thomas-lepage/domain_exporter/tree/main/_examples)
 folder.
 
 You can configure `domain_exporter` to always export metrics for specific
@@ -59,19 +59,19 @@ Notice that if you do that, results are cached, and you should change your job
 **homebrew**:
 
 ```bash
-brew install caarlos0/tap/domain_exporter
+brew install thomas-lepage/tap/domain_exporter
 ```
 
 **docker**:
 
 ```bash
-docker run --rm -p 9222:9222 caarlos0/domain_exporter
+docker run --rm -p 9222:9222 thomas-lepage/domain_exporter
 ```
 
 **apt**:
 
 ```bash
-echo 'deb [trusted=yes] https://repo.caarlos0.dev/apt/ /' | sudo tee /etc/apt/sources.list.d/caarlos0.list
+echo 'deb [trusted=yes] https://repo.thomas-lepage.dev/apt/ /' | sudo tee /etc/apt/sources.list.d/thomas-lepage.list
 sudo apt update
 sudo apt install domain_exporter
 ```
@@ -79,11 +79,11 @@ sudo apt install domain_exporter
 **yum**:
 
 ```sh
-echo '[caarlos0]
-name=caarlos0
-baseurl=https://repo.caarlos0.dev/yum/
+echo '[thomas-lepage]
+name=thomas-lepage
+baseurl=https://repo.thomas-lepage.dev/yum/
 enabled=1
-gpgcheck=0' | sudo tee /etc/yum.repos.d/caarlos0.repo
+gpgcheck=0' | sudo tee /etc/yum.repos.d/thomas-lepage.repo
 sudo yum install domain_exporter
 ```
 
@@ -97,8 +97,8 @@ install with the appropriate commands.
 Download the pre-compiled binaries from the [releases page][releases] or clone
 the repository build from source.
 
-[releases]: https://github.com/caarlos0/domain_exporter/releases
+[releases]: https://github.com/thomas-lepage/domain_exporter/releases
 
 ## Stargazers over time
 
-[![Stargazers over time](https://starchart.cc/caarlos0/domain_exporter.svg)](https://starchart.cc/caarlos0/domain_exporter)
+[![Stargazers over time](https://starchart.cc/thomas-lepage/domain_exporter.svg)](https://starchart.cc/thomas-lepage/domain_exporter)

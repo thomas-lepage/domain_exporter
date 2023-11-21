@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/caarlos0/domain_exporter/internal/client"
+	"github.com/thomas-lepage/domain_exporter/internal/client"
 	"github.com/domainr/whois"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/net/idna"
@@ -76,6 +76,7 @@ var (
 		"Exp date",
 	}, "|") + `)\]?:?\s?(.*)`)
 	registrarRE = regexp.MustCompile(`(?i)Registrar WHOIS Server: (.*)`)
+	nameserversRE = regexp.MustCompile(`(?i)Name Server: (.*)`)
 )
 
 type whoisClient struct{}
@@ -85,24 +86,39 @@ func NewClient() client.Client {
 	return whoisClient{}
 }
 
-func (c whoisClient) ExpireTime(ctx context.Context, domain string, host string) (time.Time, error) {
+func (c whoisClient) ExpireTime(ctx context.Context, domain string, host string) (client.Metrics, error) {
 	log.Debug().Msgf("trying whois client for %q", domain)
 	body, err := c.request(ctx, domain, host)
 	if err != nil {
-		return time.Now(), err
+		return client.Metrics{time.Now(), nil}, err
 	}
 	result := expiryRE.FindStringSubmatch(body)
 	if len(result) < 2 {
-		return time.Now(), fmt.Errorf("could not parse whois response: %q", body)
+		return client.Metrics{time.Now(), nil}, fmt.Errorf("could not parse whois response: %q", body)
 	}
+	finalDate := nil
 	dateStr := strings.TrimSpace(result[2])
 	for _, format := range formats {
 		if date, err := time.Parse(format, dateStr); err == nil {
 			log.Debug().Msgf("domain %q will expire at %q", domain, date.String())
-			return date, nil
+			finalDate = date
 		}
 	}
-	return time.Now(), fmt.Errorf("could not parse date: %q", dateStr)
+
+	if (finalDate != nil) {
+	    resultNameServer := nameserversRE.FindAllString(body, -1)
+        nameservers := []string{}
+        for _, s := range resultNameServer {
+            if nameservers[strings.ToLower(strings.TrimSpace(s[1]))] {
+                nameservers = append(nameservers, strings.ToLower(strings.TrimSpace(s[1])))
+            }
+        }
+        fmt.Printf("Result: %s", nameservers)
+	    domainMetrics := client.Metrics{finalDate, nameservers}
+	    return domainMetrics, nil
+	}
+
+	return client.Metrics{time.Now(), nil}, fmt.Errorf("could not parse date: %q", dateStr)
 }
 
 func (c whoisClient) request(ctx context.Context, domain, host string) (string, error) {

@@ -1,4 +1,4 @@
-module github.com/caarlos0/domain_exporter
+module github.com/thomas-lepage/domain_exporter
 
 go 1.20
 

@@ -11,24 +11,24 @@ import (
 )
 
 type testClient struct {
-	result *time.Time
+	result *Metrics
 }
 
-func (f testClient) ExpireTime(_ context.Context, _ string, _ string) (time.Time, error) {
+func (f testClient) ExpireTime(_ context.Context, _ string, _ string) (Metrics, error) {
 	return *f.result, nil
 }
 
 type errTestClient struct {
 }
 
-func (f errTestClient) ExpireTime(_ context.Context, _ string, _ string) (time.Time, error) {
-	return time.Now(), fmt.Errorf("failed to get domain info blah")
+func (f errTestClient) ExpireTime(_ context.Context, _ string, _ string) (Metrics, error) {
+	return Metrics{time.Now(), nil}, fmt.Errorf("failed to get domain info blah")
 }
 
 func TestCachedClient(t *testing.T) {
 	ctx := context.Background()
 	cache := cache.New(1*time.Minute, 1*time.Minute)
-	expected := time.Now()
+	expected := Metrics{time.Now(), nil}
 	domain := "foo.bar"
 	host := ""
 
@@ -46,7 +46,7 @@ func TestCachedClient(t *testing.T) {
 	// should be the cached one
 	t.Run("get from cache", func(t *testing.T) {
 		oldExpected := expected
-		expected = time.Now()
+		expected = Metrics{time.Now(), nil}
 		res, err := cli.ExpireTime(ctx, domain, host)
 		is := is.New(t)
 		is.NoErr(err)              // expected an error

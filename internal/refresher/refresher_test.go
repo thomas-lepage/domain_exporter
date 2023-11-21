@@ -5,20 +5,20 @@ import (
 	"errors"
 	"testing"
 	"time"
-
-	"github.com/caarlos0/domain_exporter/internal/safeconfig"
+	"github.com/thomas-lepage/domain_exporter/internal/client"
+	"github.com/thomas-lepage/domain_exporter/internal/safeconfig"
 )
 
 type fakeOk struct{}
 
-func (fakeOk) ExpireTime(ctx context.Context, domain string, host string) (time.Time, error) {
-	return time.Time{}, nil
+func (fakeOk) ExpireTime(ctx context.Context, domain string, host string) (client.Metrics, error) {
+	return client.Metrics{time.Time{}, nil}, nil
 }
 
 type fakeFail struct{}
 
-func (fakeFail) ExpireTime(ctx context.Context, domain string, host string) (time.Time, error) {
-	return time.Time{}, errors.New("foo")
+func (fakeFail) ExpireTime(ctx context.Context, domain string, host string) (client.Metrics, error) {
+	return client.Metrics{time.Time{}, nil}, errors.New("foo")
 }
 
 func Test_refresher_Refresh(t *testing.T) {

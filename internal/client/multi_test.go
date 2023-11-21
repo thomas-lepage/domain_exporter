@@ -11,28 +11,28 @@ import (
 
 type clifail int
 
-func (clifail) ExpireTime(_ context.Context, domain string, host string) (time.Time, error) {
-	return time.Time{}, errors.New("foo")
+func (clifail) ExpireTime(_ context.Context, domain string, host string) (Metrics, error) {
+	return Metrics{time.Time{}, nil}, errors.New("foo")
 }
 
-type clisuccess time.Time
+type clisuccess Metrics
 
-func (c clisuccess) ExpireTime(_ context.Context, domain string, host string) (time.Time, error) {
-	return time.Time(c), nil
+func (c clisuccess) ExpireTime(_ context.Context, domain string, host string) (Metrics, error) {
+	return Metrics{time.Time(c), nil}, nil
 }
 
 func TestMulti(t *testing.T) {
 	ctx := context.Background()
 	t.Run("first client succeed", func(t *testing.T) {
 		is := is.New(t)
-		expected := time.Now()
+		expected := Metrics{time.Now(), nil}
 		expire, err := NewMultiClient(clisuccess(expected), clifail(0)).ExpireTime(ctx, "a", "")
 		is.NoErr(err)              // expected no error
 		is.Equal(expected, expire) // expeted the same result
 	})
 	t.Run("last client succeed", func(t *testing.T) {
 		is := is.New(t)
-		expected := time.Now()
+		expected := Metrics{time.Now(), nil}
 		expire, err := NewMultiClient(clifail(0), clifail(0), clisuccess(expected)).ExpireTime(ctx, "a", "")
 		is.NoErr(err)              // expected no error
 		is.Equal(expected, expire) // expeted the same result

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/caarlos0/domain_exporter/internal/client"
+	"github.com/thomas-lepage/domain_exporter/internal/client"
 	"github.com/openrdap/rdap"
 	"github.com/rs/zerolog/log"
 )
@@ -52,7 +52,7 @@ func NewClient() client.Client {
 	return rdapClient{}
 }
 
-func (rdapClient) ExpireTime(ctx context.Context, domain string, host string) (time.Time, error) {
+func (rdapClient) ExpireTime(ctx context.Context, domain string, host string) (client.Metrics, error) {
 	log.Debug().Msgf("trying rdap client for %s", domain)
 	req := &rdap.Request{
 		Type:  rdap.DomainRequest,
@@ -63,23 +63,24 @@ func (rdapClient) ExpireTime(ctx context.Context, domain string, host string) (t
 	client := &rdap.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return time.Now(), fmt.Errorf("failed to do rdap request: %w", err)
+		return client.Metrics{time.Now(), nil}, fmt.Errorf("failed to do rdap request: %w", err)
 	}
 
 	body, ok := resp.Object.(*rdap.Domain)
 	if !ok {
-		return time.Now(), fmt.Errorf("failed to cast rdap domain object: %w", err)
+		return client.Metrics{time.Now(), nil}, fmt.Errorf("failed to cast rdap domain object: %w", err)
 	}
 
 	for _, event := range body.Events {
 		if event.Action == "expiration" {
 			for _, format := range formats {
 				if date, err := time.Parse(format, event.Date); err == nil {
-					return date, nil
+				    test := client.Metrics{date, nil}
+					return test, nil
 				}
 			}
-			return time.Now(), fmt.Errorf("could not parse date: %s", event.Date)
+			return client.Metrics{time.Now(), nil}, fmt.Errorf("could not parse date: %s", event.Date)
 		}
 	}
-	return time.Now(), fmt.Errorf("no expiration event for domain: %s ", domain)
+	return client.Metrics{time.Now(), nil}, fmt.Errorf("no expiration event for domain: %s ", domain)
 }

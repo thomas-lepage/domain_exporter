@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/caarlos0/domain_exporter/internal/client"
-	"github.com/caarlos0/domain_exporter/internal/safeconfig"
+	"github.com/thomas-lepage/domain_exporter/internal/client"
+	"github.com/thomas-lepage/domain_exporter/internal/safeconfig"
 	"github.com/rs/zerolog/log"
 )
 

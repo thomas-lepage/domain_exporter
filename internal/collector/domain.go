@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/caarlos0/domain_exporter/internal/client"
-	"github.com/caarlos0/domain_exporter/internal/safeconfig"
+	"github.com/thomas-lepage/domain_exporter/internal/client"
+	"github.com/thomas-lepage/domain_exporter/internal/safeconfig"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 )
@@ -21,6 +21,7 @@ type domainCollector struct {
 	expiryDays    *prometheus.Desc
 	probeSuccess  *prometheus.Desc
 	probeDuration *prometheus.Desc
+	nameservers   *prometheus.Desc
 }
 
 // NewDomainCollector returns a domain collector.
@@ -49,6 +50,12 @@ func NewDomainCollector(client client.Client, timeout time.Duration, domains ...
 			[]string{"domain"},
 			nil,
 		),
+		nameservers: prometheus.NewDesc(
+			prometheus.BuildFQName(namespace, subsystem, "nameservers"),
+			"returns how long the probe took to complete in seconds",
+			[]string{"domain"},
+			nil,
+		),
 	}
 }
 
@@ -57,6 +64,7 @@ func (c *domainCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- c.expiryDays
 	ch <- c.probeDuration
 	ch <- c.probeSuccess
+	ch <- c.nameservers
 }
 
 // Collect all metrics
@@ -69,7 +77,7 @@ func (c *domainCollector) Collect(ch chan<- prometheus.Metric) {
 
 	for _, domain := range c.domains {
 		start := time.Now()
-		date, err := c.client.ExpireTime(ctx, domain.Name, domain.Host)
+		metrics, err := c.client.ExpireTime(ctx, domain.Name, domain.Host)
 		if err != nil {
 			log.Error().Err(err).Msgf("failed to probe %s", domain)
 		}
@@ -84,11 +92,17 @@ func (c *domainCollector) Collect(ch chan<- prometheus.Metric) {
 		ch <- prometheus.MustNewConstMetric(
 			c.expiryDays,
 			prometheus.GaugeValue,
-			math.Floor(time.Until(date).Hours()/24),
+			math.Floor(time.Until(metrics.ExpiryDays).Hours()/24),
 			domain.Name,
 		)
 		ch <- prometheus.MustNewConstMetric(
 			c.probeDuration,
+			prometheus.GaugeValue,
+			time.Since(start).Seconds(),
+			domain.Name,
+		)
+		ch <- prometheus.MustNewConstMetric(
+			c.nameservers,
 			prometheus.GaugeValue,
 			time.Since(start).Seconds(),
 			domain.Name,
